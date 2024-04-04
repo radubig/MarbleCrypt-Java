@@ -88,16 +88,16 @@ public class ActionEntity extends DrawableEntity implements ILeftClickable {
     public void OnLeftClick() {
         DetermineAction();
         switch (m_action_type) {
-            case ActionType.Collect:
+            case Collect:
                 m_inv.CollectAll();
                 break;
 
-            case ActionType.Burn:
+            case Burn:
                 m_inv.BurnMarble(m_selectedMarbles.iterator().next());
                 m_selectedMarbles.clear();
                 break;
 
-            case ActionType.Fusion:
+            case Fusion:
                 var iterator = m_selectedMarbles.iterator();
                 int ind1 = iterator.next();
                 int ind2 = iterator.next();
@@ -105,7 +105,7 @@ public class ActionEntity extends DrawableEntity implements ILeftClickable {
                 m_selectedMarbles.clear();
                 break;
 
-            case ActionType.Deselect:
+            case Deselect:
                 m_selectedMarbles.clear();
                 break;
         }

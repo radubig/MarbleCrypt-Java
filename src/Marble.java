@@ -6,12 +6,12 @@ public class Marble {
     public static long CalculateDailyYield(MarbleRarity rarity)
     {
         switch (rarity) {
-            case MarbleRarity.Normal -> {return 200;}
-            case MarbleRarity.Rare -> {return 320;}
-            case MarbleRarity.SuperRare -> {return 510;}
-            case MarbleRarity.UltraRare -> {return 820;}
-            case MarbleRarity.Legendary -> {return 2000;}
-            case MarbleRarity.Mythic -> {return 16000;}
+            case Normal -> {return 200;}
+            case Rare -> {return 320;}
+            case SuperRare -> {return 510;}
+            case UltraRare -> {return 820;}
+            case Legendary -> {return 2000;}
+            case Mythic -> {return 16000;}
             default -> {return 0;}
         }
     }
@@ -44,12 +44,12 @@ public class Marble {
         m_rarity = rarity;
         m_timepoint_last_yield = new Date();
         switch (rarity) {
-            case MarbleRarity.Normal -> m_daily_yield = 200;
-            case MarbleRarity.Rare -> m_daily_yield = 320;
-            case MarbleRarity.SuperRare -> m_daily_yield = 510;
-            case MarbleRarity.UltraRare -> m_daily_yield = 820;
-            case MarbleRarity.Legendary -> m_daily_yield = 2000;
-            case MarbleRarity.Mythic -> m_daily_yield = 16000;
+            case Normal -> m_daily_yield = 200;
+            case Rare -> m_daily_yield = 320;
+            case SuperRare -> m_daily_yield = 510;
+            case UltraRare -> m_daily_yield = 820;
+            case Legendary -> m_daily_yield = 2000;
+            case Mythic -> m_daily_yield = 16000;
         }
     }
 
