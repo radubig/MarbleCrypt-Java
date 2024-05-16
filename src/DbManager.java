@@ -1,8 +1,10 @@
 import java.sql.*;
+import java.util.Date;
 
 public class DbManager {
     private static DbManager dbManager;
     private Connection con;
+    private IAuditService auditService;
 
     private PreparedStatement sqlGetAmount,
                               sqlSetAmount,
@@ -13,6 +15,10 @@ public class DbManager {
                               sqlDeleteMarble;
 
     private DbManager() {
+        // Initialize audit service
+        auditService = new AuditService();
+        auditService.OpenAuditFile("db_audit.csv");
+
         // Initialize database connection
         String host = "mysql-pao-pao-db.k.aivencloud.com";
         String port = "26240";
@@ -31,6 +37,8 @@ public class DbManager {
             sqlCreateMarble = con.prepareStatement("INSERT INTO marbles (name, daily_yield, timestamp, rarity, texture1, texture2) VALUES (?, ?, ?, ?, ?, ?)",
                                                     Statement.RETURN_GENERATED_KEYS);
             sqlDeleteMarble = con.prepareStatement("DELETE FROM marbles WHERE id = ?");
+
+            auditService.WriteAudit("Database connection established", new Date());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
@@ -48,6 +56,8 @@ public class DbManager {
     public void close() {
         try {
             con.close();
+            auditService.WriteAudit("Database connection closed", new Date());
+            auditService.CloseAuditFile();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -56,7 +66,9 @@ public class DbManager {
     public ResultSet GetMarbleData() {
         try {
             Statement stmt = con.createStatement();
-            return stmt.executeQuery("SELECT rarity, name, texture_slot FROM marble_data");
+            ResultSet rs = stmt.executeQuery("SELECT rarity, name, texture_slot FROM marble_data");
+            auditService.WriteAudit("Read * from marble_data", new Date());
+            return rs;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -66,6 +78,7 @@ public class DbManager {
         try {
             ResultSet rs = sqlGetAmount.executeQuery();
             rs.next();
+            auditService.WriteAudit("Read amount from wallet", new Date());
             return rs.getString("amount");
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -76,6 +89,7 @@ public class DbManager {
         try {
             sqlSetAmount.setString(1, amount);
             sqlSetAmount.executeUpdate();
+            auditService.WriteAudit("Update amount from wallet", new Date());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -85,6 +99,7 @@ public class DbManager {
         try {
             ResultSet rs = sqlGetPrice.executeQuery();
             rs.next();
+            auditService.WriteAudit("Read price from wallet", new Date());
             return rs.getString("price");
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -95,6 +110,7 @@ public class DbManager {
         try {
             sqlSetPrice.setString(1, price);
             sqlSetPrice.executeUpdate();
+            auditService.WriteAudit("Update price from wallet", new Date());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -103,6 +119,7 @@ public class DbManager {
     public ResultSet GetMarbles() {
         try {
             Statement stmt = con.createStatement();
+            auditService.WriteAudit("Read all marbles", new Date());
             return stmt.executeQuery("SELECT * FROM marbles");
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -113,6 +130,7 @@ public class DbManager {
         try {
             Statement stmt = con.createStatement();
             stmt.executeUpdate("DELETE FROM marbles");
+            auditService.WriteAudit("Delete all marbles", new Date());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -130,6 +148,7 @@ public class DbManager {
 
             ResultSet rs = sqlCreateMarble.getGeneratedKeys();
             rs.next();
+            auditService.WriteAudit("Insert new marble with name " + name, new Date());
             return rs.getInt(1);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -141,6 +160,7 @@ public class DbManager {
             sqlUpdateMarble.setLong(1, timestamp);
             sqlUpdateMarble.setInt(2, id);
             sqlUpdateMarble.executeUpdate();
+            auditService.WriteAudit("Update timestamp on marble " + id, new Date());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -150,6 +170,7 @@ public class DbManager {
         try {
             sqlDeleteMarble.setInt(1, id);
             sqlDeleteMarble.executeUpdate();
+            auditService.WriteAudit("Delete marble " + id, new Date());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

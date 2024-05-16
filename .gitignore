@@ -30,5 +30,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-### Savefile ###
+### Savefile and audit files ###
 save.dat
+db_audit.csv
