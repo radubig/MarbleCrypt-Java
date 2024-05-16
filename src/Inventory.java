@@ -4,10 +4,9 @@ import org.jsfml.graphics.Texture;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Vector;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class Inventory {
     public Inventory() {
@@ -40,14 +39,17 @@ public class Inventory {
         fin.close();
     }
 
-    public void LoadMarbleData(String filePath) throws FileLoadException {
-        m_marble_loader.LoadMarbleData(filePath, m_textures);
+    public void LoadMarbleData() throws RuntimeException, SQLException {
+        m_marble_loader.LoadMarbleData(m_textures);
     }
 
     public void SetDefault() {
         m_wallet = new CryptoCoin(CryptoCoin.s_initial_ammount);
         m_marbles.clear();
         m_generator.ResetPrice();
+        DbManager.getInstance().SetAmount(m_wallet.toString());
+        DbManager.getInstance().SetPrice(m_generator.toString());
+        DbManager.getInstance().DeleteAllMarbles();
         System.out.println("Inventory reset.");
     }
 
@@ -67,6 +69,7 @@ public class Inventory {
         if (!m_wallet.Pay(m_generator.GetPrice()))
             return false;
         int chance = m_generator.Generate();
+        DbManager.getInstance().SetPrice(m_generator.toString());
 
         MarbleRarity rarity;
         if (chance <= 54)
@@ -80,7 +83,9 @@ public class Inventory {
         else
             rarity = MarbleRarity.Legendary;
 
-        m_marbles.add(new Marble(m_marble_loader.GetRandomMarbleData(rarity), rarity));
+        Marble marble = new Marble(m_marble_loader.GetRandomMarbleData(rarity), rarity);
+        marble.AddToDb(FindTextureSolt(marble.GetTexture1()), FindTextureSolt(marble.GetTexture2()));
+        m_marbles.add(marble);
         return true;
     }
 
@@ -90,9 +95,9 @@ public class Inventory {
         {
             double ammount = marble.GetYield();
             totalSum += ammount;
-            m_wallet.Add(ammount);
             marble.CollectYield();
         }
+        m_wallet.Add(totalSum);
         System.out.println("Collected " + totalSum + " $MTK.");
     }
 
@@ -116,16 +121,17 @@ public class Inventory {
         }
 
         // Create new marble based on previous 2 marbles
+        Marble marble;
         if (m_marbles.get(index_first).GetRarity() == MarbleRarity.Legendary &&
             m_marbles.get(index_second).GetRarity() == MarbleRarity.Legendary)
         {
-            m_marbles.add(new Marble(
+            marble = new Marble(
                 m_marbles.get(index_first).GetName() + m_marbles.get(index_second).GetName(),
                 Marble.CalculateDailyYield(MarbleRarity.Mythic),
                 m_marbles.get(index_first).GetTexture1(),
                 m_marbles.get(index_second).GetTexture1(),
                 MarbleRarity.Mythic
-            ));
+            );
         }
         else
         {
@@ -133,15 +139,19 @@ public class Inventory {
             if (m_marbles.get(index_second).GetRarity().compareTo(rarity) > 0)
                 rarity = m_marbles.get(index_second).GetRarity();
 
-            m_marbles.add(new Marble(
+            marble = new Marble(
                 m_marbles.get(index_first).GetName() + m_marbles.get(index_second).GetName(),
                 Marble.CalculateDailyYield(rarity) * 5,
                 m_marbles.get(index_first).GetTexture1(),
                 m_marbles.get(index_second).GetTexture1(),
                 rarity
-            ));
+            );
         }
+        marble.AddToDb(FindTextureSolt(marble.GetTexture1()), FindTextureSolt(marble.GetTexture2()));
+        m_marbles.add(marble);
 
+        m_marbles.get(index_first).DeleteFromDb();
+        m_marbles.get(index_second).DeleteFromDb();
         m_marbles.remove(index_second);
         m_marbles.remove(index_first);
     }
@@ -164,6 +174,7 @@ public class Inventory {
 
     public void BurnMarble(int index) {
         double value = GetBurnValue(index);
+        m_marbles.get(index).DeleteFromDb();
         m_marbles.remove(index);
         m_wallet.Add(value);
     }
@@ -225,7 +236,7 @@ public class Inventory {
 
 
     // Loading and saving progress
-    public void SaveInventory() {
+    public void SaveInventory() { // TODO: remove
         try {
             File file = new File(s_savefile);
             file.createNewFile();
@@ -250,6 +261,34 @@ public class Inventory {
         }
     }
 
+    public void LoadInventory() {
+        try {
+            m_wallet = new CryptoCoin(ConvertHexToReal(DbManager.getInstance().GetAmount()));
+            m_generator.ResetPrice(ConvertHexToReal(DbManager.getInstance().GetPrice()));
+
+            m_marbles.clear();
+            ResultSet rs = DbManager.getInstance().GetMarbles();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                long daily_yield = rs.getLong("daily_yield");
+                long timestamp = rs.getLong("timestamp");
+                MarbleRarity rarity = MarbleRarity.valueOf(rs.getString("rarity"));
+                int t1 = rs.getInt("texture1");
+                int t2 = rs.getInt("texture2");
+                Texture texture1 = t1 == -1 ? null : m_textures.get(t1);
+                Texture texture2 = t2 == -1 ? null : m_textures.get(t2);
+
+                m_marbles.add(new Marble(id, name, daily_yield, texture1, texture2, rarity, new Date(timestamp)));
+            }
+            System.out.println("Inventory loaded.");
+
+        } catch (SQLException e) {
+            System.err.println("[SQL Exception]: " + Arrays.toString(e.getStackTrace()));
+        }
+    }
+
+    /*
     public void LoadInventory() {
         File file = new File(s_savefile);
         if (!file.exists()) {
@@ -283,7 +322,7 @@ public class Inventory {
             System.out.println("Error loading save file.");
         }
     }
-
+    */
 
     // Cheats:
     public void GenerateEachRarity() {

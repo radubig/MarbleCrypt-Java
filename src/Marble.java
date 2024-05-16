@@ -27,7 +27,8 @@ public class Marble {
     }
 
     // Create a new marble and provide the timepoint of the last yield
-    public Marble(String name, long daily_yield, Texture texture_1, Texture texture_2, MarbleRarity rarity, Date timepoint_last_yield) {
+    public Marble(int id, String name, long daily_yield, Texture texture_1, Texture texture_2, MarbleRarity rarity, Date timepoint_last_yield) {
+        this.id = id;
         m_name = name;
         m_daily_yield = daily_yield;
         m_texture = texture_1;
@@ -80,8 +81,10 @@ public class Marble {
     }
 
     public void CollectYield() {
-        if (GetYield() > 0)
+        if (GetYield() > 0) {
             m_timepoint_last_yield = new Date();
+            DbManager.getInstance().UpdateMarble(this.id, m_timepoint_last_yield.getTime());
+        }
     }
 
     public String GetName() {
@@ -96,6 +99,16 @@ public class Marble {
                m_rarity.toString();
     }
 
+    public void AddToDb(int texture1, int texture2) {
+        int id = DbManager.getInstance().CreateMarble(m_name, m_daily_yield, m_timepoint_last_yield.getTime(), m_rarity.toString(), texture1, texture2);
+        this.id = id;
+    }
+
+    public void DeleteFromDb() {
+        DbManager.getInstance().DeleteMarble(this.id);
+    }
+
+    public int id;
     private String m_name;
     private Texture m_texture; // Pointer
     private Texture m_texture_2; // Pointer

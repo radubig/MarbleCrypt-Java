@@ -1,10 +1,13 @@
 import Exceptions.FileLoadException;
 import Exceptions.FontLoadException;
 import Exceptions.TextureLoadException;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class Main {
     public static void main(String[] args) {
+        DbManager dbManager = DbManager.getInstance();
         try {
             GameApp app = GameApp.getInstance();
             app.SetResolution(1340, 820);
@@ -21,6 +24,10 @@ public class Main {
             System.err.println("[Font Load Exception]: " + e.getMessage());
         } catch (TextureLoadException e) {
             System.err.println("[Texture Load Exception]: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("[SQL Exception]: " + Arrays.toString(e.getStackTrace()));
+        } finally {
+            dbManager.close();
         }
     }
 }

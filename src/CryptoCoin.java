@@ -10,10 +10,12 @@ public class CryptoCoin {
         if (ammount > m_balance)
             return false;
         m_balance -= ammount;
+        DbManager.getInstance().SetAmount(this.toString());
         return true;
     }
     public void Add(double ammount) {
         m_balance += ammount;
+        DbManager.getInstance().SetAmount(this.toString());
     }
     public double Balance() {
         return m_balance;

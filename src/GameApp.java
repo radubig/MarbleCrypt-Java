@@ -6,12 +6,13 @@ import org.jsfml.window.event.Event;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Vector;
 
 public class GameApp {
     private static GameApp app;
-    private GameApp() throws FontLoadException, TextureLoadException, FileLoadException {
+    private GameApp() throws FontLoadException, TextureLoadException, FileLoadException, SQLException {
         m_window = new RenderWindow();
         m_inv = new Inventory();
 
@@ -31,11 +32,11 @@ public class GameApp {
 
         // Load inventory data
         m_inv.LoadTextures("data/textures.txt");
-        m_inv.LoadMarbleData("data/marbles.txt");
+        m_inv.LoadMarbleData();
         m_inv.LoadInventory();
     }
 
-    public static synchronized GameApp getInstance() throws FileLoadException, FontLoadException, TextureLoadException {
+    public static synchronized GameApp getInstance() throws FileLoadException, FontLoadException, TextureLoadException, SQLException {
         if (app == null) {
             app = new GameApp();
         }
@@ -172,7 +173,7 @@ public class GameApp {
         }
 
         // Before app closing events
-        m_inv.SaveInventory();
+        //m_inv.SaveInventory();
     }
 
 
