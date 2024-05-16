@@ -234,33 +234,6 @@ public class Inventory {
         return s.size();
     }
 
-
-    // Loading and saving progress
-    public void SaveInventory() { // TODO: remove
-        try {
-            File file = new File(s_savefile);
-            file.createNewFile();
-            FileWriter fout = new FileWriter(file);
-
-            // Save current wallet information
-            fout.write(m_wallet.toString() + "\n");
-            fout.write(m_generator.toString() + "\n");
-
-            // Save Inventory
-            fout.write(m_marbles.size() + "\n");
-            for (Marble marble : m_marbles) {
-                fout.write(marble.toString() + "\n");
-                fout.write(FindTextureSolt(marble.GetTexture1()) + "\n");
-                fout.write(FindTextureSolt(marble.GetTexture2()) + "\n");
-            }
-
-            fout.close();
-            System.out.println("Game saved.");
-        } catch (IOException e) {
-            System.out.println("Error saving game.");
-        }
-    }
-
     public void LoadInventory() {
         try {
             m_wallet = new CryptoCoin(ConvertHexToReal(DbManager.getInstance().GetAmount()));
@@ -288,49 +261,30 @@ public class Inventory {
         }
     }
 
-    /*
-    public void LoadInventory() {
-        File file = new File(s_savefile);
-        if (!file.exists()) {
-            System.out.println("No save file found.");
-            return;
-        }
-
-        try {
-            Scanner fin = new Scanner(file);
-            m_wallet = new CryptoCoin(ConvertHexToReal(fin.nextLine()));
-            m_generator.ResetPrice(ConvertHexToReal(fin.nextLine()));
-
-            m_marbles.clear();
-            int size = Integer.parseInt(fin.nextLine());
-            for (int i = 0; i < size; i++) {
-                String name = fin.nextLine();
-                long daily_yield = Long.parseLong(fin.nextLine());
-                long timestamp = Long.parseLong(fin.nextLine());
-                MarbleRarity rarity = MarbleRarity.valueOf(fin.nextLine());
-                int t1 = Integer.parseInt(fin.nextLine());
-                int t2 = Integer.parseInt(fin.nextLine());
-                Texture texture1 = t1 == -1 ? null : m_textures.get(t1);
-                Texture texture2 = t2 == -1 ? null : m_textures.get(t2);
-
-                m_marbles.add(new Marble(name, daily_yield, texture1, texture2, rarity, new Date(timestamp)));
-            }
-
-            fin.close();
-            System.out.println("Inventory loaded.");
-        } catch (FileNotFoundException e) {
-            System.out.println("Error loading save file.");
-        }
-    }
-    */
-
     // Cheats:
     public void GenerateEachRarity() {
-        m_marbles.add(new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.Normal), MarbleRarity.Normal));
-        m_marbles.add(new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.Rare), MarbleRarity.Rare));
-        m_marbles.add(new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.SuperRare), MarbleRarity.SuperRare));
-        m_marbles.add(new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.UltraRare), MarbleRarity.UltraRare));
-        m_marbles.add(new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.Legendary), MarbleRarity.Legendary));
+        Marble marble;
+
+        marble = new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.Normal), MarbleRarity.Normal);
+        marble.AddToDb(FindTextureSolt(marble.GetTexture1()), FindTextureSolt(marble.GetTexture2()));
+        m_marbles.add(marble);
+
+        marble = new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.Rare), MarbleRarity.Rare);
+        marble.AddToDb(FindTextureSolt(marble.GetTexture1()), FindTextureSolt(marble.GetTexture2()));
+        m_marbles.add(marble);
+
+        marble = new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.SuperRare), MarbleRarity.SuperRare);
+        marble.AddToDb(FindTextureSolt(marble.GetTexture1()), FindTextureSolt(marble.GetTexture2()));
+        m_marbles.add(marble);
+
+        marble = new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.UltraRare), MarbleRarity.UltraRare);
+        marble.AddToDb(FindTextureSolt(marble.GetTexture1()), FindTextureSolt(marble.GetTexture2()));
+        m_marbles.add(marble);
+
+        marble = new Marble(m_marble_loader.GetRandomMarbleData(MarbleRarity.Legendary), MarbleRarity.Legendary);
+        marble.AddToDb(FindTextureSolt(marble.GetTexture1()), FindTextureSolt(marble.GetTexture2()));
+        m_marbles.add(marble);
+
         // No mythtic marble
     }
 

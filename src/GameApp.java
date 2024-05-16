@@ -144,17 +144,13 @@ public class GameApp {
                         if (m_cheats_enabled)
                             m_inv.GenerateEachRarity();
                     }
-                    else if (e.asKeyEvent().key == Keyboard.Key.S) {
-                        m_inv.SaveInventory();
-                    }
                     else if (e.asKeyEvent().key == Keyboard.Key.B) {
                         if (!m_inv.BuyMarble())
                             System.out.println("Not enough funds!");
                     }
                     else if (e.asKeyEvent().key == Keyboard.Key.DELETE) {
-                        // Delete all progress and force save
+                        // Delete all progress
                         m_inv.SetDefault();
-                        m_inv.SaveInventory();
                     }
                     else if (e.asKeyEvent().key == Keyboard.Key.F) {
                         System.out.println("FPS: " + 1.0f / fpsClock.getElapsedTime().asSeconds());
