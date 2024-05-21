@@ -24,9 +24,11 @@ public class DbManager {
         String port = "26240";
         String databaseName = "defaultdb";
         String userName = "avnadmin";
-        String password = "AVNS_7MkmMjz9ZDlCmNC5eMH";
+        String password = ""; // Set password here
 
         try {
+            if (password.isEmpty())
+                throw new RuntimeException("Database password is not set!");
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + databaseName + "?sslmode=require", userName, password);
             sqlGetAmount = con.prepareStatement("SELECT amount FROM wallet WHERE id = 1");
@@ -55,7 +57,8 @@ public class DbManager {
 
     public void close() {
         try {
-            con.close();
+            if(con != null)
+                con.close();
             auditService.WriteAudit("Database connection closed", new Date());
             auditService.CloseAuditFile();
         } catch (SQLException e) {
